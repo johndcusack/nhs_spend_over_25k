@@ -24,7 +24,7 @@ def raw_files_to_df(dir_name: str) -> dict[str,list]:
         raise ValueError(f"Value error: {dir_name} not found in raw data directory")
     else:
         file_list: list = [f for f in listdir(full_dir) if isfile(join(full_dir, f))]
-        xlsx_list: list = [pd.read_excel(join(full_dir,f)) for f in file_list if search(r"\.xlsx$",f)]
-        csv_list: list = [pd.read_csv(join(full_dir,f)) for f in file_list if search(r"\.csv$",f)]
+        xlsx_list: list = [pd.read_excel(join(full_dir,f)) for f in file_list if f.endswith("xlsx")]
+        csv_list: list = [pd.read_csv(join(full_dir,f)) for f in file_list if f.endswith("xlsx")]
         df_list: list = xlsx_list+csv_list
         return {(f"df_list-,{dir_name}"): df_list}
