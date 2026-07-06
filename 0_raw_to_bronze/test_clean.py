@@ -3,6 +3,18 @@ import logging
 from os import listdir
 from os.path import isfile, join
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+file_handler = logging.FileHandler('initial_clean.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+
+
 
 def raw_files_to_df(dir_name: str) -> dict[str,list]:
     """
