@@ -2,8 +2,11 @@ import pandas as pd
 import logging
 from os import listdir
 from os.path import isfile, join
-from dataclasses import dataclass, field
 from typing import Callable
+
+from rtb_config import PROVIDER_CONFIGS, READERS, DOWNLOAD_DIR, ProviderConfig
+
+# Set up logging 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -16,38 +19,7 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(file_handler)
 
-@dataclass
-class ProviderConfig:
-    read_kwargs: dict = field(default_factory = dict)
-    post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None
-
-def drop_blank_col(df: pd.DataFrame) -> pd.DataFrame:
-    return df.drop(columns = df.columns[0])
-
-def drop_blank_rows(df: pd.DataFrame) -> pd.DataFrame:
-    return df.dropna(how="all").reset_index(drop=True)
-
-PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
-    "RWY": ProviderConfig(), #bucks, handled separately
-    "RN5": ProviderConfig(read_kwargs={"skiprows":3}), #Hampshire hosps
-    "R1F": ProviderConfig(), #isle of wight
-    "RTH": ProviderConfig(read_kwargs={"skiprows":2}), #Oxford uni
-    "RHU": ProviderConfig(read_kwargs={"header":0}, post_process = drop_blank_rows), #portsmouth
-    "RHW": ProviderConfig(read_kwargs={"index_col":0}, post_process= drop_blank_col), #rbft
-    "RHM": ProviderConfig(read_kwargs={"skiprows":2}), #Sotn Uni
-}
-
-def read_bucks(file_path: str) -> pd.DataFrame:
-    sheets = pd.read_excel(file_path, sheet_name=None) #returns a dictionary of df per sheet
-    return pd.concat(
-        [df.assign(month=sheet) for sheet, df in sheets.items()],
-        ignore_index = True,
-    )
-
-READERS: dict[str, Callable[[str], pd.DataFrame]] = {
-    "RWY": read_bucks,
-    #scales for more strange configs if needed
-}
+# Main process function
 
 def raw_files_to_df(dir_name: str) -> dict[str,list]:
     """
@@ -79,11 +51,10 @@ def raw_files_to_df(dir_name: str) -> dict[str,list]:
             logger.info("success: %s", file_path)
             return file_df
 
-    raw_dir: str = "/home/john/projects/spend_over_25/downloaded_data/"
-    full_dir: str = join(raw_dir,dir_name)
+    full_dir: str = join(DOWNLOAD_DIR,dir_name)
     config = PROVIDER_CONFIGS[dir_name] #fails loudly if a directory name is passed without a configuration
     reader = READERS.get(dir_name)
-    if dir_name not in listdir(raw_dir):
+    if dir_name not in listdir(DOWNLOAD_DIR):
         raise ValueError(f"Value error: {dir_name} not found in raw data directory")
     else:
         file_list: list = [f for f in listdir(full_dir) if isfile(join(full_dir, f)) and f.endswith((".xlsx",".csv"))]
