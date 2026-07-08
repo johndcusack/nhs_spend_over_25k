@@ -4,7 +4,7 @@ from os import listdir
 from os.path import isfile, join
 from typing import Callable
 
-from rtb_config import PROVIDER_CONFIGS, READERS, DOWNLOAD_DIR, ProviderConfig
+from bronze_config import PROVIDER_CONFIGS, READERS, DOWNLOAD_DIR, ProviderConfig
 
 # Set up logging 
 
