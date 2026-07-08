@@ -60,3 +60,4 @@ def raw_files_to_df(dir_name: str) -> dict[str,list]:
         file_list: list = [f for f in listdir(full_dir) if isfile(join(full_dir, f)) and f.endswith((".xlsx",".csv"))]
         df_list: list = [df for f in file_list if (df := read_with_logging(join(full_dir,f), config=config, reader= reader)) is not None]
         return {(f"{dir_name}"): df_list}
+    

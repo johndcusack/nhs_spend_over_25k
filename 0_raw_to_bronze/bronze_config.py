@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from typing import Callable
 import pandas as pd
 
+
+DOWNLOAD_DIR: str = "/home/john/projects/spend_over_25/downloaded_data/"
+
 @dataclass
 class ProviderConfig:
     read_kwargs: dict = field(default_factory = dict)
