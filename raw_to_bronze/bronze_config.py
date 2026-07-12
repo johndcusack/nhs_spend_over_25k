@@ -7,8 +7,10 @@ DOWNLOAD_DIR: str = "/home/john/projects/spend_over_25/downloaded_data/"
 
 @dataclass
 class ProviderConfig:
+    date_col: str
     read_kwargs: dict = field(default_factory = dict)
     post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None
+    
 
 def drop_blank_col(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns = df.columns[0])
@@ -17,13 +19,13 @@ def drop_blank_rows(df: pd.DataFrame) -> pd.DataFrame:
     return df.dropna(how="all").reset_index(drop=True)
 
 PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
-    "RWY": ProviderConfig(), #bucks, handled separately
-    "RN5": ProviderConfig(read_kwargs={"skiprows":3}), #Hampshire hosps
-    "R1F": ProviderConfig(), #isle of wight
-    "RTH": ProviderConfig(read_kwargs={"skiprows":2}), #Oxford uni
-    "RHU": ProviderConfig(read_kwargs={"header":0}, post_process = drop_blank_rows), #portsmouth
-    "RHW": ProviderConfig(read_kwargs={"index_col":0}, post_process= drop_blank_col), #rbft
-    "RHM": ProviderConfig(read_kwargs={"skiprows":2}), #Sotn Uni
+    "RWY": ProviderConfig(date_col = 'Date'), #bucks, handled separately
+    "RN5": ProviderConfig(date_col = 'Date', read_kwargs={"skiprows":3}), #Hampshire hosps
+    "R1F": ProviderConfig(date_col = 'Date'), #isle of wight
+    "RTH": ProviderConfig(date_col = 'Invoice Date', read_kwargs={"skiprows":2}), #Oxford uni
+    "RHU": ProviderConfig(date_col = 'Date', read_kwargs={"header":0}, post_process = drop_blank_rows), #portsmouth
+    "RHW": ProviderConfig(date_col = 'Date Paid', read_kwargs={"index_col":0}, post_process= drop_blank_col), #rbft
+    "RHM": ProviderConfig(date_col = 'Date', read_kwargs={"skiprows":2}), #Sotn Uni
 }
 
 def read_bucks(file_path: str) -> pd.DataFrame:
