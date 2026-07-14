@@ -9,6 +9,7 @@ click==8.4.2
 colorama==0.4.6
 comm==0.2.3
 daff==1.4.2
+dataclasses==0.6
 dbt-adapters==1.24.2
 dbt-common==1.38.0
 dbt-core==1.11.12
