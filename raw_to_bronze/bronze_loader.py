@@ -76,7 +76,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
 
     def identify_df_period(df: pd.DataFrame, config:ProviderConfig, dir_name:str, file_path: str) -> str:
         try: 
-            dates = pd.to_datetime(df[config.date_col], errors='raise')
+            dates = pd.to_datetime(df[config.date_col], **config.date_kwargs)
         except Exception:
             message = f"Key Error: {config.date_col} not present in {file_path}"
             logger.exception(message)
@@ -84,7 +84,6 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
 
         year_month = dates.dt.to_period('M')
         unique_year_month = year_month.unique()
-
         if len(unique_year_month) != 1:
             message: str = f"Expected single month in file, found {len(unique_year_month)} for {file_path}"
             logger.error(message)
@@ -112,7 +111,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
             summary.attempted +=1
             try: 
                 df = read_with_logging(file_path=file_path, config=config, reader=reader)
-                table_name = identify_df_period(df=df,config=config,dir_name=dir_name, file_path=file_path)
+                table_name = identify_df_period(df=df,config=config, dir_name=dir_name, file_path=file_path)
             except Exception:
                 logger.error("skipping %s, see log for details",file_path)
                 summary.failed_files.append(file_path)
@@ -126,10 +125,4 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
             dataframes[table_name] = df
             summary.succeeded +=1
 
-        return dataframes, summary
-
-
-
-
-
-    
+        return dataframes, summary    
