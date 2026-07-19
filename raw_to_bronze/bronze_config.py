@@ -62,7 +62,8 @@ def find_header_xlsx(file_path: str, date_col: str) -> int:
         raise ValueError(message)
     return header_row
 
-def read_rth(file_path: str, config = PROVIDER_CONFIGS['RTH']) -> pd.DataFrame:
+def read_rth(file_path: str) -> pd.DataFrame:
+    config = PROVIDER_CONFIGS['RTH']
     header_row = find_header_xlsx(file_path=file_path, date_col = config.date_col)
     return pd.read_excel(file_path, header = header_row)
 
