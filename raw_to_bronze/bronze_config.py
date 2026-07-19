@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, cast
 import pandas as pd
 
 
@@ -41,14 +41,33 @@ PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Sotn Uni
 }
 
-def read_bucks(file_path: str) -> pd.DataFrame:
+def read_rwy(file_path: str) -> pd.DataFrame:
     sheets = pd.read_excel(file_path, sheet_name=None) #returns a dictionary of df per sheet
     return pd.concat(
         [df.assign(month=sheet) for sheet, df in sheets.items()],
         ignore_index = True,
     )
 
-READERS: dict[str, Callable[[str], pd.DataFrame]] = {
-    "RWY": read_bucks,
+def find_header_xlsx(file_path: str, date_col: str) -> int:
+    preview = pd.read_excel(file_path, header = None, nrows = 5)
+    header_row: int | None = None
+    
+    for i, row in preview.iterrows():
+        if date_col in row.astype(str).values:
+            header_row = cast(int,i)
+            break
+    
+    if header_row is None: 
+        message = (f"Search for header failed, could not locate {date_col} in {file_path}")
+        raise ValueError(message)
+    return header_row
+
+def read_rth(file_path: str, config = PROVIDER_CONFIGS['RTH']) -> pd.DataFrame:
+    header_row = find_header_xlsx(file_path=file_path, date_col = config.date_col)
+    return pd.read_excel(file_path, header = header_row)
+
+CUSTOM_READERS: dict[str, Callable[[str], pd.DataFrame]] = {
+    "RWY": read_rwy,
+    "RTH": read_rth,
     #scales for more strange configs if needed
 }
