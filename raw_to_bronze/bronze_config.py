@@ -10,8 +10,7 @@ class ProviderConfig:
     date_col: str
     read_kwargs: dict = field(default_factory = dict)
     date_kwargs: dict = field(default_factory = dict)
-    post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None
-    
+    post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None   
 
 def drop_blank_col(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns = df.columns[0])
@@ -27,8 +26,7 @@ PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Hampshire hosps
     "R1F": ProviderConfig(date_col = 'Date', 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #isle of wight
-    "RTH": ProviderConfig(date_col = 'Invoice Creation Date', 
-                          read_kwargs={"skiprows":2}, 
+    "RTH": ProviderConfig(date_col = 'Invoice Creation Date',
                           date_kwargs={'errors':'raise', 'format':'%d-%b-%Y'}), #Oxford uni
     "RHU": ProviderConfig(date_col = 'Date', 
                           read_kwargs={"header":0}, 

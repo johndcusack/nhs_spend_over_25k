@@ -8,6 +8,6 @@ from dataclasses import dataclass, field
 
 from raw_to_bronze.bronze_config import PROVIDER_CONFIGS, READERS, DOWNLOAD_DIR, ProviderConfig
 
-x = pd.read_excel('/home/john/projects/spend_over_25/downloaded_data/RHM/Expenditure-over-25000-February-2026.xlsx', skiprows=2)
+x = pd.read_excel('/home/john/projects/spend_over_25/downloaded_data/RTH/25k-invoices-november-2025.xlsx')
 
 print(x.columns)

@@ -14,6 +14,6 @@ from raw_to_bronze.bronze_config import DOWNLOAD_DIR
 
 #print(file_dirs)
 
-dataframes, summary = raw_files_to_df("RHU")
+dataframes, summary = raw_files_to_df("RTH")
 print(summary)
 
