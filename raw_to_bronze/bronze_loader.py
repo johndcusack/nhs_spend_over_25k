@@ -24,17 +24,29 @@ logger.addHandler(file_handler)
 
 @dataclass
 class LoadSummary:
-    attempted: int = 0
-    succeeded: int = 0
+    attempted_files: int = 0
+
     failed_files: list[str] = field(default_factory=list)
 
+    attempted_sheets: int = 0
+    succeeded_sheets: int = 0
+    failed_sheets: list[str] = field(default_factory=list)
+
     @property
-    def failed(self) -> int:
+    def failed_file_count(self) -> int:
         return len(self.failed_files)
 
+    @property
+    def failed_sheet_count(self) -> int:
+        return len(self.failed_sheets)
+
     def __str__(self) -> str:
-        return (f"attempted={self.attempted}, succeeded={self.succeeded}, "
-                f"failed={self.failed} ({self.failed_files})")
+        return (f"attempted_files={self.attempted_files}, "
+                f"succeeded_files={self.attempted_files-self.failed_file_count}\n"
+                f"failed={self.failed_file_count} ({self.failed_files})\n"
+                f"attempted_sheets={self.attempted_sheets}, succeeded_sheets={self.succeeded_sheets}\n"
+                f"sheet failures={self.failed_sheet_count} ({self.failed_sheets})")
+    
 # Main process function
 
 def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]:
@@ -77,11 +89,11 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
                 file_dict[key] = value.rename(columns=lambda x: x.strip())
             return file_dict
 
-    def identify_df_period(df: pd.DataFrame, config:ProviderConfig, dir_name:str, file_path: str) -> str:
+    def identify_df_period(df: pd.DataFrame, config:ProviderConfig, dir_name:str, file_path: str, sheet_id: str) -> str:
         try: 
             dates = pd.to_datetime(df[config.date_col], **config.date_kwargs)
         except Exception:
-            message = f"Key Error: {config.date_col} not present in {file_path}"
+            message = f"Key Error: {config.date_col} not present in {file_path} - sheet ID: {sheet_id}"
             logger.exception(message)
             raise KeyError(message)
 
@@ -90,7 +102,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
         
         if len(unique_year_month) != 1:
             months_seen = unique_year_month.astype(str)
-            message: str = f"Expected single month in file, found {months_seen} for {file_path}"
+            message: str = f"Expected single month in file, found {months_seen} for {file_path} - sheet ID: {sheet_id}"
             logger.error(message)
             raise ValueError(message)
 
@@ -113,7 +125,8 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
 
         for f in file_list:
             file_path: str = join(full_dir,f)
-            summary.attempted +=1
+            summary.attempted_files +=1
+            
             try: 
                 file_dict = read_with_logging(file_path=file_path, config=config, reader=reader)
                 
@@ -122,12 +135,14 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
                 summary.failed_files.append(file_path)
                 continue
 
-            for value in file_dict.values():
+            for key, value in file_dict.items():
+                summary.attempted_sheets +=1
                 try:
-                    table_name = identify_df_period(df=value,config=config, dir_name=dir_name, file_path=file_path)
+                    table_name = identify_df_period(df=value, config=config, dir_name=dir_name, file_path=file_path, sheet_id=key)
                 except Exception:
-                    logger.error("skipping %s, see log for details",file_path)
-                    summary.failed_files.append(file_path)
+                    failure = file_path+" : "+key
+                    logger.error("skipping %s, see log for details",failure)
+                    summary.failed_sheets.append(failure)
                     continue
 
                 if table_name in dataframes:
@@ -136,6 +151,6 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
                     raise ValueError(message)
             
                 dataframes[table_name] = value
-                summary.succeeded +=1
+                summary.succeeded_sheets +=1
 
         return dataframes, summary    
