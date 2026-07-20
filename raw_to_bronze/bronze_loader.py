@@ -7,7 +7,7 @@ from os.path import isfile, join
 from typing import Callable
 from dataclasses import dataclass, field
 
-from raw_to_bronze.bronze_config import PROVIDER_CONFIGS, READERS, DOWNLOAD_DIR, ProviderConfig
+from raw_to_bronze.bronze_config import PROVIDER_CONFIGS, CUSTOM_READERS, DOWNLOAD_DIR, ProviderConfig
 
 # Set up logging 
 
@@ -72,7 +72,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
             raise RuntimeError(message)    
         else:
             logger.info("success: %s", file_path)
-            return file_df
+            return file_df.rename(columns=lambda x: x.strip())
 
     def identify_df_period(df: pd.DataFrame, config:ProviderConfig, dir_name:str, file_path: str) -> str:
         try: 
@@ -83,9 +83,11 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
             raise KeyError(message)
 
         year_month = dates.dt.to_period('M')
-        unique_year_month = year_month.unique()
+        unique_year_month = year_month.dropna().unique()
+        
         if len(unique_year_month) != 1:
-            message: str = f"Expected single month in file, found {len(unique_year_month)} for {file_path}"
+            months_seen = unique_year_month.astype(str)
+            message: str = f"Expected single month in file, found {months_seen} for {file_path}"
             logger.error(message)
             raise ValueError(message)
 
@@ -93,7 +95,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
 
     full_dir: str = join(DOWNLOAD_DIR,dir_name)
     config = PROVIDER_CONFIGS[dir_name] #fails loudly if a directory name is passed without a configuration
-    reader = READERS.get(dir_name)
+    reader = CUSTOM_READERS.get(dir_name)
 
     if dir_name not in listdir(DOWNLOAD_DIR):
         message: str = f"Value error: {dir_name} not found in raw data directory"

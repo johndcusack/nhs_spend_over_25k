@@ -1,7 +1,7 @@
 import pandas as pd
-import logging
+#import logging
 
-from os import listdir
+#from os import listdir
 from raw_to_bronze.bronze_loader import raw_files_to_df
 from raw_to_bronze.bronze_config import DOWNLOAD_DIR
 
@@ -14,6 +14,6 @@ from raw_to_bronze.bronze_config import DOWNLOAD_DIR
 
 #print(file_dirs)
 
-dataframes, summary = raw_files_to_df("RTH")
+dataframes, summary = raw_files_to_df("RWY")
 print(summary)
 
