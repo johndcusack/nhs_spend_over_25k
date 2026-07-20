@@ -20,7 +20,7 @@ def drop_blank_rows(df: pd.DataFrame) -> pd.DataFrame:
 
 PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
     "RWY": ProviderConfig(date_col = 'Date', 
-                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #bucks, handled separately
+                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #bucks, 
     "RN5": ProviderConfig(date_col = 'Date', 
                           read_kwargs={"skiprows":3}, 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Hampshire hosps
@@ -41,12 +41,9 @@ PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Sotn Uni
 }
 
-def read_rwy(file_path: str) -> pd.DataFrame:
-    sheets = pd.read_excel(file_path, sheet_name=None) #returns a dictionary of df per sheet
-    return pd.concat(
-        [df.assign(month=sheet) for sheet, df in sheets.items()],
-        ignore_index = True,
-    )
+def read_rwy(file_path: str) -> dict[str, pd.DataFrame]:
+    sheets = pd.read_excel(file_path, sheet_name = None)
+    return sheets
 
 def find_header_xlsx(file_path: str, date_col: str) -> int:
     preview = pd.read_excel(file_path, header = None, nrows = 5)
@@ -62,13 +59,12 @@ def find_header_xlsx(file_path: str, date_col: str) -> int:
         raise ValueError(message)
     return header_row
 
-def read_rth(file_path: str) -> pd.DataFrame:
+def read_rth(file_path: str) -> dict[str,pd.DataFrame]:
     config = PROVIDER_CONFIGS['RTH']
     header_row = find_header_xlsx(file_path=file_path, date_col = config.date_col)
-    return pd.read_excel(file_path, header = header_row)
+    return pd.read_excel(file_path, header = header_row, sheet_name = None)
 
-CUSTOM_READERS: dict[str, Callable[[str], pd.DataFrame]] = {
-    "RWY": read_rwy,
+CUSTOM_READERS: dict[str, Callable[[str], dict[str,pd.DataFrame]]] = {
     "RTH": read_rth,
     #scales for more strange configs if needed
 }

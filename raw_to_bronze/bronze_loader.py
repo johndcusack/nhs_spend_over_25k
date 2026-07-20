@@ -47,7 +47,7 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
         dict(str, list): key is name of the searched directory and the year-month of the file, value is a dataframe
     """
 
-    def read_with_logging(file_path: str, config: ProviderConfig, reader: Callable|None) -> pd.DataFrame:
+    def read_with_logging(file_path: str, config: ProviderConfig, reader: Callable|None) -> dict[str, pd.DataFrame]:
         logger.info("processing: %s",file_path)
 
         if not file_path.endswith((".xlsx", ".csv")):
@@ -57,22 +57,25 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
 
         try:
             if reader is not None:
-                file_df = reader(file_path)
+                file_dict = reader(file_path)
             elif file_path.endswith("xlsx"):
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", UserWarning)
-                file_df = pd.read_excel(file_path, **config.read_kwargs)
+                    file_dict = pd.read_excel(file_path, sheet_name = None, **config.read_kwargs)
             else:
-                file_df = pd.read_csv(file_path, **config.read_kwargs)            
+                file_dict = {"csv": pd.read_csv(file_path, **config.read_kwargs)}            
             if config.post_process is not None:
-                file_df = config.post_process(file_df)
+                for key, value in file_dict.items(): 
+                    file_dict[key] = config.post_process(value)
         except Exception:
             message = f"load error in {file_path}"
             logger.exception(message)
             raise RuntimeError(message)    
         else:
             logger.info("success: %s", file_path)
-            return file_df.rename(columns=lambda x: x.strip())
+            for key, value in file_dict.items():
+                file_dict[key] = value.rename(columns=lambda x: x.strip())
+            return file_dict
 
     def identify_df_period(df: pd.DataFrame, config:ProviderConfig, dir_name:str, file_path: str) -> str:
         try: 
@@ -112,19 +115,27 @@ def raw_files_to_df(dir_name: str) -> tuple[dict[str,pd.DataFrame], LoadSummary]
             file_path: str = join(full_dir,f)
             summary.attempted +=1
             try: 
-                df = read_with_logging(file_path=file_path, config=config, reader=reader)
-                table_name = identify_df_period(df=df,config=config, dir_name=dir_name, file_path=file_path)
+                file_dict = read_with_logging(file_path=file_path, config=config, reader=reader)
+                
             except Exception:
                 logger.error("skipping %s, see log for details",file_path)
                 summary.failed_files.append(file_path)
                 continue
-                        
-            if table_name in dataframes:
-                message: str = f"Duplicate table key '{table_name}. {f} produced a key already populated in this batch"
-                logger.error(message)
-                raise ValueError(message)
+
+            for value in file_dict.values():
+                try:
+                    table_name = identify_df_period(df=value,config=config, dir_name=dir_name, file_path=file_path)
+                except Exception:
+                    logger.error("skipping %s, see log for details",file_path)
+                    summary.failed_files.append(file_path)
+                    continue
+
+                if table_name in dataframes:
+                    message: str = f"Duplicate table key '{table_name}. {f} produced a key already populated in this batch"
+                    logger.error(message)
+                    raise ValueError(message)
             
-            dataframes[table_name] = df
-            summary.succeeded +=1
+                dataframes[table_name] = value
+                summary.succeeded +=1
 
         return dataframes, summary    
