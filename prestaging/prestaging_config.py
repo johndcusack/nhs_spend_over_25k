@@ -10,7 +10,8 @@ class ProviderConfig:
     date_col: str
     read_kwargs: dict = field(default_factory = dict)
     date_kwargs: dict = field(default_factory = dict)
-    post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None   
+    post_process: Callable[[pd.DataFrame], pd.DataFrame] | None = None
+    column_spec: dict = field(default_factory = dict)   
 
 def drop_blank_col(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns = df.columns[0])
@@ -20,7 +21,17 @@ def drop_blank_rows(df: pd.DataFrame) -> pd.DataFrame:
 
 PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
     "RWY": ProviderConfig(date_col = 'Date', 
-                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #bucks, 
+                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'},
+                          column_spec = {
+                              "Department Family":"str",
+                              "Entity":"str",
+                              "Date":"datetime64[ns]",
+                              "Transaction number":"int",
+                              "Supplier Name":"str",
+                              "Expense type":"str",
+                              "Expense area":"str",
+                              "Amount":"float",
+                          }), 
     "RN5": ProviderConfig(date_col = 'Date', 
                           read_kwargs={"skiprows":3}, 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Hampshire hosps
