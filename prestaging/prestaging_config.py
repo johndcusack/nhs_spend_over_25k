@@ -23,33 +23,102 @@ PROVIDER_CONFIGS: dict[str, ProviderConfig] = {
     "RWY": ProviderConfig(date_col = 'Date', 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'},
                           column_spec = {
-                              "Department Family":"str",
-                              "Entity":"str",
-                              "Date":"datetime64[ns]",
-                              "Transaction number":"int",
-                              "Supplier Name":"str",
-                              "Expense type":"str",
-                              "Expense area":"str",
-                              "Amount":"float",
+                              'Department Family':'str',
+                              'Entity':'str',
+                              'Date':'datetime64[ns]',
+                              'Transaction number':'str',
+                              'Supplier Name':'str',
+                              'Expense type':'str',
+                              'Expense area':'str',
+                              'Amount':'float',
                           }), 
     "RN5": ProviderConfig(date_col = 'Date', 
                           read_kwargs={"skiprows":3}, 
-                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Hampshire hosps
+                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'},
+                          column_spec={
+                              'Department Family':'str',
+                              'Entity':'str',
+                              'Date':'datetime64[ns]',
+                              'Expense Type':'str',
+                              'Expense Area':'str',
+                              'Supplier':'str',
+                              'Transaction Number':'str',
+                              'AP Amount':'float',
+                              'Description':'str',
+                              'Supplier Postcode':'str',
+                              'Supplier type':'str',
+                              'Contract Number':'str',
+                              'Project code':'str',
+                              'Expenditure type':'str',
+                              'VAT Registration Number':'str',
+                              'Purchase Invoice Number':'str',
+                          }), #Hampshire hosps
     "R1F": ProviderConfig(date_col = 'Date', 
-                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #isle of wight
+                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'},
+                          column_spec={
+                              'Department Family': 'str',
+                              'Entity':'str',
+                              'Date':'datetime64[ns]',
+                              'Expense Type':'str',
+                              'Expense Area':'str',
+                              'Supplier':'str',
+                              'Transaction Number':'str',
+                              'AP Amount':'float'
+                          }), #isle of wight
     "RTH": ProviderConfig(date_col = 'Invoice Creation Date',
-                          date_kwargs={'errors':'raise', 'format':'%d-%b-%Y'}), #Oxford uni
+                          date_kwargs={'errors':'raise', 'format':'%d-%b-%Y'},
+                          column_spec = {
+                              'Business Unit':'str',
+                              'Invoice No':'str',
+                              'Voucher No':'int',
+                              'Invoice Date':'datetime64[ns]',
+                              'Invoice Amount':'float',
+                              'Invoice Creation Date':'datetime64[ns]',
+                              'Supplier Type':'str',
+                              'Supplier Name':'str',
+                          }), #Oxford uni
     "RHU": ProviderConfig(date_col = 'Date', 
                           read_kwargs={"header":0}, 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}, 
-                          post_process = drop_blank_rows), #portsmouth
+                          post_process = drop_blank_rows,
+                          column_spec = {
+                              'Department Family':'str',
+                              'Entity':'str',
+                              'Date':'datetime64[ns]',
+                              'Expense Type':'str',
+                              'Expense Area':'str',
+                              'Supplier':'str',
+                              'Transaction Number':'str',
+                              'AP Amount':'float',
+                          }), #portsmouth
     "RHW": ProviderConfig(date_col = 'Date Paid', 
                           read_kwargs={"index_col":0, "skiprows":1}, 
                           date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}, 
-                          post_process= drop_blank_col), #rbft
+                          post_process= drop_blank_col,
+                          column_spec={
+                              'Accounting Year':'int',
+                              'Sub Ledger Description':'str',
+                              'Period (Date Paid)':'int',
+                              'Date Paid':'datetime64[ns]',
+                              '15AN - Level 15 Account Name':'str',
+                              '15CCN - Level 15 Cost Centre Name':'str',
+                              'Supplier Name':'str',
+                              'Our Reference':'str',
+                              'Transaction Status':'str',
+                              'Analysed Gross':'float',
+                          }), #rbft
     "RHM": ProviderConfig(date_col = 'Date\n(payment date)', 
                           read_kwargs={"skiprows":2}, 
-                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'}), #Sotn Uni
+                          date_kwargs={'errors':'raise', 'format':'%d/%m/%Y'},
+                          column_spec={
+                              'Department Family':'str',
+                              'Entity':'str',
+                              'Supplier':'str',
+                              'Transaction Number\n(invoice number)':'str',
+                              'Date\n(payment date)':'datetime64[ns]',
+                              'Amount':'float',
+                              'Currency':'str',
+                          }), #Sotn Uni
 }
 
 def read_rwy(file_path: str) -> dict[str, pd.DataFrame]:
