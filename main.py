@@ -3,7 +3,7 @@ import pandas as pd
 
 #from os import listdir
 from prestaging.prestaging_extractor import raw_files_to_df
-from prestaging.prestaging_config import DOWNLOAD_DIR
+#from prestaging.prestaging_config import DOWNLOAD_DIR
 
 #file_dirs: list = listdir(DOWNLOAD_DIR)
 
@@ -16,4 +16,3 @@ from prestaging.prestaging_config import DOWNLOAD_DIR
 
 dataframes, summary = raw_files_to_df("RWY")
 print(summary)
-

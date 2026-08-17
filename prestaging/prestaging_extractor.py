@@ -7,7 +7,7 @@ from os.path import isfile, join
 from typing import Callable
 from dataclasses import dataclass, field
 
-from raw_to_bronze.bronze_config import PROVIDER_CONFIGS, CUSTOM_READERS, DOWNLOAD_DIR, ProviderConfig
+from prestaging.prestaging_config import PROVIDER_CONFIGS, CUSTOM_READERS, DOWNLOAD_DIR, ProviderConfig
 
 # Set up logging 
 
