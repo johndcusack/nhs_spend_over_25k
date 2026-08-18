@@ -45,7 +45,7 @@ def _hash_df(df: pd.DataFrame) -> str:
 
 
 def create_metadata_df(df_dict: dict, config_dict: dict, org_code: str) -> pd.DataFrame:
-
+    extracted_on = pd.Timestamp.now()
     metadata_dict: dict[str,str]= {}
 
     for key, value in df_dict.items():        
@@ -54,6 +54,8 @@ def create_metadata_df(df_dict: dict, config_dict: dict, org_code: str) -> pd.Da
         metadata_dict[key] = hash_key
 
     metadata_df = pd.DataFrame(list(metadata_dict.items()), columns=["table_name", "hash"])
+
+    metadata_df["extracted_on"] = extracted_on
 
 
     return metadata_df
