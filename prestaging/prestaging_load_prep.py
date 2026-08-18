@@ -1,9 +1,8 @@
 import pandas as pd
 import hashlib
 from prestaging.prestaging_config import PROVIDER_CONFIGS, CUSTOM_READERS, DOWNLOAD_DIR, ProviderConfig
-# rework config to have a column order for sorting each org's columns
-# 
-def normalise_df(df: pd.DataFrame, config: ProviderConfig) -> pd.DataFrame:
+
+def _normalise_df(df: pd.DataFrame, config: ProviderConfig) -> pd.DataFrame:
     """
     Normalise a dataframe for hashing. 
     Coercions here are just for ensuring consistent hashing and are not
@@ -18,7 +17,7 @@ def normalise_df(df: pd.DataFrame, config: ProviderConfig) -> pd.DataFrame:
         raise ValueError(
             f"Column mismatch: missing={missing}, unexpected={unexpected}"
         )
-
+    
     df = df[list(config.column_spec.keys())] #sets column order
 
     for col, dtype in config.column_spec.items():
@@ -34,7 +33,7 @@ def normalise_df(df: pd.DataFrame, config: ProviderConfig) -> pd.DataFrame:
 
     return df
 
-def hash_df(df: pd.DataFrame, df_name: str) -> tuple[str, str]:
+def _hash_df(df: pd.DataFrame) -> str:
     """
     Intended for use with dataframes normalised using the normalise_df function
     Calculates a unique SHA-256 hash string for a normalised DataFrame
@@ -42,8 +41,19 @@ def hash_df(df: pd.DataFrame, df_name: str) -> tuple[str, str]:
     """
     row_bytes = pd.util.hash_pandas_object(df, index=False).to_numpy().tobytes()
     hash_key = hashlib.sha256(row_bytes).hexdigest()
+    return hash_key
 
-    return df_name, hash_key
 
-def metadata_append():
-    pass
+def create_metadata_df(df_dict: dict, config_dict: dict, org_code: str) -> pd.DataFrame:
+
+    metadata_dict: dict[str,str]= {}
+
+    for key, value in df_dict.items():        
+        norm = _normalise_df(df= value, config= config_dict[org_code])
+        hash_key = _hash_df(df=norm)
+        metadata_dict[key] = hash_key
+
+    metadata_df = pd.DataFrame(list(metadata_dict.items()), columns=["table_name", "hash"])
+
+
+    return metadata_df
