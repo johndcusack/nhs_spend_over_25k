@@ -1,6 +1,6 @@
 import pandas as pd
 import hashlib
-from prestaging.prestaging_config import PROVIDER_CONFIGS, CUSTOM_READERS, DOWNLOAD_DIR, ProviderConfig
+from prestaging.prestaging_config import PROVIDER_CONFIGS, ProviderConfig
 
 def _normalise_df(df: pd.DataFrame, config: ProviderConfig) -> pd.DataFrame:
     """
@@ -44,18 +44,17 @@ def _hash_df(df: pd.DataFrame) -> str:
     return hash_key
 
 
-def create_metadata_df(df_dict: dict, config_dict: dict, org_code: str) -> pd.DataFrame:
+def create_metadata_df(df_dict: dict, org_code: str) -> pd.DataFrame:
     extracted_on = pd.Timestamp.now()
     metadata_dict: dict[str,str]= {}
 
     for key, value in df_dict.items():        
-        norm = _normalise_df(df= value, config= config_dict[org_code])
+        norm = _normalise_df(df= value, config= PROVIDER_CONFIGS[org_code])
         hash_key = _hash_df(df=norm)
         metadata_dict[key] = hash_key
 
     metadata_df = pd.DataFrame(list(metadata_dict.items()), columns=["table_name", "hash"])
 
     metadata_df["extracted_on"] = extracted_on
-
-
+    
     return metadata_df

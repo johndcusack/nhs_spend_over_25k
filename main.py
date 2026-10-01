@@ -3,6 +3,7 @@ import pandas as pd
 
 #from os import listdir
 from prestaging.prestaging_extractor import raw_files_to_df
+from prestaging.prestaging_load_prep import create_metadata_df
 #from prestaging.prestaging_config import DOWNLOAD_DIR
 
 #file_dirs: list = listdir(DOWNLOAD_DIR)
@@ -15,4 +16,7 @@ from prestaging.prestaging_extractor import raw_files_to_df
 #print(file_dirs)
 
 dataframes, summary = raw_files_to_df("RWY")
+
+metadata_df = create_metadata_df(df_dict= dataframes, org_code= "RWY") 
+
 print(summary)
